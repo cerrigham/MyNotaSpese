@@ -12,30 +12,9 @@ $messaggio = <<<EOT
 </font>
 <br/><br/>
 EOT;
-//echo $messaggio;
 
-if($_SERVER["REQUEST_METHOD"] == "POST")
-{
-$myimporto=addslashes($_POST['importo']);
-$mydata=addslashes($_POST['data']);
-$mynote=addslashes($_POST['note']);
-$mytipospesa=addslashes($_POST['tipospesa']);
-
-$sql="INSERT INTO SPESA (importo, id_utente, id_tipo_spesa, note, flag_importante, flag_da_sistemare, data)
-VALUES ('$myimporto', '$id_utente', '$mytipospesa', '$mynote', 'N', 'N', '$mydata')";
-
-$result=mysql_query($sql);
-if ($result) {
-?>
-<script>alert("Inserimento riuscito");</script>
-<?php
-		header("location: scegli_spesa.php");
-	} else {
-?>
-<script>alert("Inserimento fallito");</script>
-<?php
-	}
-}
+$dataDa=date('Y-1-1');
+$dataA=date('Y-12-31');
 ?>
 <html>
 <head>
@@ -71,7 +50,7 @@ if ($result) {
 </head>
 
 <body>
-		<nav class="navbar navbar-default">
+	<nav class="navbar navbar-default">
 		<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
 			<span class="sr-only">Toggle navigation</span>
 			<span class="icon-bar"></span>
@@ -109,11 +88,54 @@ if ($result) {
 				<?php
 					//echo $messaggio;
 				?>
-				<a href="report_spese_mese.php" role="button" class="btn btn-primary btn-block">Report spese ultimo mese</a>
-				<a href="report_spese_due_mesi.php" role="button" class="btn btn-primary btn-block">Report spese ultimi due mesi</a>
-				<a href="report_spese_sei_mesi.php" role="button" class="btn btn-primary btn-block">Report spese ultimi sei mesi</a>
-				<a href="report_spese_anno_corrente.php" role="button" class="btn btn-primary btn-block">Report spese anno corrente</a>
-				<a href="report_spese_allegato.php" role="button" class="btn btn-primary btn-block">Report spese con allegati</a>
+				<!--
+				<a href="scegli_report.php" role="button" class="btn btn-primary btn-block">Report</a>
+				<a href="inserisci_spesa.php" role="button" class="btn btn-primary btn-block">Inserisci spesa</a>
+				-->
+				<h4>Spese con allegato</h4>
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th align="left">Importo</th>
+							<th align="left">Note</th>
+							<th align="left">Descrizione</th>
+							<th align="center">Data</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php
+							$sql="SELECT SUM(SPESA.importo) as totale
+								  FROM SPESA
+								  WHERE (SPESA.data BETWEEN '$dataDa' AND '$dataA') ";
+							$result = mysql_query($sql);
+							while ($row = mysql_fetch_array($result)) {
+								echo '<b>Totale: ' . ' ' . $row['totale'] . '</b>';
+							}
+							echo '<br/>';
+		 					$sql="SELECT SPESA.importo, SPESA.note, TIPO_SPESA.descrizione, SPESA.data, SPESA.nome_file
+								  FROM SPESA, TIPO_SPESA
+								  WHERE SPESA.id_tipo_spesa = TIPO_SPESA.id 
+								  AND SPESA.nome_file IS NOT NULL
+								  ORDER BY SPESA.data ASC ";
+							$result = mysql_query($sql);
+							while ($row = mysql_fetch_array($result)) {
+								echo ' <tr> ';
+								echo ' <td> ';
+								echo $row['importo'];
+								echo ' <td> ';
+								echo $row['note'];
+								echo ' <td> ';
+								echo $row['descrizione'];
+								echo ' <td> ';
+								echo $row['data'];
+								echo ' <td> ';
+								$row['data'];
+								echo '<a href="' . $row['nome_file'] . '"><i class="glyphicon glyphicon-file"></i></a>';
+							}	
+						?>
+					</tbody>
+				</table>
+			</div>
         </div>
     </div>
 <!-- Bootstrap core JavaScript

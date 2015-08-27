@@ -33,8 +33,37 @@ if ($result) {
 ?>
 <script>alert("Inserimento riuscito");</script>
 <?php
-		//header("location: inserisci_spesa.php");
-	} else {
+	if (isset($_FILES['userfile'])) {
+		$sqlUltimoInsert="SELECT MAX(id) as idMax FROM SPESA ";
+		$resultUltimoInsert=mysql_query($sqlUltimoInsert);
+
+		while ($row = mysql_fetch_array($resultUltimoInsert)) {
+			$id_spesa = $row['idMax'];
+		}
+		$uploaddir = './allegati/';
+		// recupero il percorso temporaneo del file
+		$userfile_tmp = $_FILES['userfile']['tmp_name'];
+
+		// recupero il nome originale del file caricato
+		$userfile_name = $_FILES['userfile']['name'];
+   	
+		// recupero estensione del file
+		$temp = explode('.', $_FILES['userfile']['name']);
+		$estensione = end($temp);
+		$mynotenospazi = str_replace(" ", "", $mynote);
+		$aaaammgg = str_replace("-", "", $mydata);
+		// il nuovo nome del file e' formato da: id della spesa, data in formato aaaammgg, note della spesa (senza spazi) ed estensione
+		$nomeFile = $id_spesa . "_" . $aaaammgg . "_" . $mynotenospazi .  "."  . $estensione;
+		$nomeFileAssoluto = $uploaddir . $nomeFile;
+		// memorizzo il file nella cartella allegati e salvo il suo nome dentro il db
+		move_uploaded_file($userfile_tmp, $uploaddir . $nomeFile);
+		$pos = strpos($nomeFile, "nofile");
+		if ($pos == false) {
+			$sql="UPDATE SPESA set nome_file = '$nomeFileAssoluto' WHERE id = '$id_spesa' ";
+			$result=mysql_query($sql);
+		}
+	}
+} else {
 ?>
 <script>alert("Inserimento non riuscito");</script>
 <?php
@@ -116,7 +145,7 @@ if ($result) {
 				<!--
 				<a href="scegli_report.php" role="button" class="btn btn-primary btn-block">Report</a>
 				-->
-				<form action="" method="post" name="aggiungi_spesa">
+				<form action="" method="post" name="aggiungi_spesa" enctype="multipart/form-data">
 						<h4>Aggiungi spesa</h4>
 						<div class="form-group">
 							<label for="importo" class="control-label">Importo</label>
@@ -150,7 +179,11 @@ if ($result) {
 								}
 							?>
 						</div>
-						<button type="submit" class="btn btn-primary">Salva</button>
+                        <div class="form-group">
+							<label for="note" class="control-label">Foto</label>
+							<input type="file" accept="image/*" capture  id="userfile" name="userfile">
+						</div>
+       					<button type="submit" class="btn btn-primary">Salva</button>
 				</form>
 			</div>
         </div>
@@ -161,4 +194,4 @@ if ($result) {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 <script src="./bootstrap-3.3.2-dist/js/bootstrap.min.js"></script>
 </body>
-</html>
+</html>

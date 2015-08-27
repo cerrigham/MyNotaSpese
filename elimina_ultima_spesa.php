@@ -24,6 +24,15 @@ while ($row = mysql_fetch_array($resultUltimoInsert)) {
 	$idUltimoInsert = $row['idMax'];
 }
 
+$sqlRecuperaAllegatoUltimoInsert="SELECT nome_file FROM SPESA WHERE id = '$idUltimoInsert' and nome_file IS NOT NULL";
+$resultRecuperaAllegatoUltimoInsert=mysql_query($sqlRecuperaAllegatoUltimoInsert);
+
+while ($row = mysql_fetch_array($resultRecuperaAllegatoUltimoInsert)) {
+	$nomeFileRecuperato = $row['nome_file'];
+	unlink($nomeFileRecuperato);
+}
+
+
 if($_SERVER["REQUEST_METHOD"] == "POST")
 {
 	$sql="DELETE FROM SPESA WHERE ID = '$idUltimoInsert' ";
@@ -116,7 +125,7 @@ if ($result) {
 				<form action="" method="post" name="aggiungi_spesa">
 					<h4>Elimina ultima spesa</h4>
 					<?php
-						$sqlRecuperaUltimoInsert="SELECT importo, data, note, id_tipo_spesa FROM SPESA WHERE id = '$idUltimoInsert' ";
+						$sqlRecuperaUltimoInsert="SELECT importo, data, note, id_tipo_spesa, nome_file FROM SPESA WHERE id = '$idUltimoInsert' ";
 						$resultRecuperaUltimoInsert=mysql_query($sqlRecuperaUltimoInsert);
 
 						while ($row = mysql_fetch_array($resultRecuperaUltimoInsert)) {
@@ -124,6 +133,7 @@ if ($result) {
 							$dataRecuperata = $row['data'];
 							$noteRecuperate = $row['note'];
 							$tipoSpesaRecuperata = $row['id_tipo_spesa'];
+							$nomeFileRecuperato = $row['nome_file'];
 						}
 						
 						$sqlDescrizioneTipoSpesa="SELECT descrizione FROM TIPO_SPESA WHERE id = '$tipoSpesaRecuperata' ";
@@ -142,8 +152,12 @@ if ($result) {
 								echo "Data" . "</th><td>" . $dataRecuperata . "</td><tr/>";
 							echo "<tr><th>";
 								echo "Note" . "</th><td>" . $noteRecuperate . "</td><tr/>";
-						echo "<tr><th>";
+							echo "<tr><th>";
 								echo "Tipo spesa" . "</th><td>" . $descrizioneTipoSpesaRecuperata . "</td><tr/>";
+							if($nomeFileRecuperato !== NULL) {
+								echo "<tr><th>";
+									echo "Allegato" . "</th><td>" . '<a href="' . $nomeFileRecuperato . '"><i class="glyphicon glyphicon-file"></i></a>' . "</td><tr/>";
+							}
 							echo "</tbody></table>";
 						?>
 					</p>
